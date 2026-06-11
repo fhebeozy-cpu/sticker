@@ -432,7 +432,7 @@
     <span class="sync-dot dot-idle" id="syncDot"></span>
     <span id="syncStatus">未连接 GitHub</span>
   </div>
-  <div id="lastSync" style="color:#999">—</div>
+  <div style="display:flex;align-items:center;gap:16px"><span id="pagesLinkBar" style="display:none"></span><span id="lastSync" style="color:#999">—</span></div>
 </div>
 
 <!-- TOOLBAR -->
@@ -582,6 +582,16 @@
         需要 repo 权限的 Personal Access Token。<a href="https://github.com/settings/tokens" target="_blank" style="color:var(--moss-light)">点此生成</a>
       </p>
     </div>
+    <div class="settings-section">
+      <h3>GitHub Pages 网址（可选）</h3>
+      <div class="form-group">
+        <label class="form-label">你的网址</label>
+        <input class="form-input" id="sPagesUrl" placeholder="https://fhebeozy-cpu.github.io/sticker-collection">
+      </div>
+      <div id="pagesLinkDisplay" style="display:none;margin-top:6px">
+        <a id="pagesLinkAnchor" href="#" target="_blank" style="font-size:12px;color:var(--moss-light);word-break:break-all">—</a>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" style="color:var(--ink-soft);border-color:var(--cream-dark)" onclick="closeModal('settingsOverlay')">取消</button>
       <button class="btn btn-moss" onclick="saveSettings()">保存设置</button>
@@ -600,7 +610,8 @@ let settings = {
   owner: 'fhebeozy-cpu',
   repo: 'sticker-collection',
   path: 'data/stickers.json',
-  token: ''
+  token: '',
+  pagesUrl: ''
 };
 let githubSHA = null;
 
@@ -611,6 +622,7 @@ function init() {
   const local = localStorage.getItem('sticker_entries');
   if (local) entries = JSON.parse(local);
   updateSyncStatus('idle', '本地数据已加载');
+  renderPagesLink();
   renderGrid();
   renderStats();
   renderPlatformFilter();
@@ -835,6 +847,7 @@ function updatePricePreview() {
 }
 
 
+function saveLocal() {
   localStorage.setItem('sticker_entries', JSON.stringify(entries));
   updateSyncStatus('warn', '有未同步的更改');
 }
@@ -932,6 +945,13 @@ function openSettings() {
   document.getElementById('sRepo').value = settings.repo;
   document.getElementById('sPath').value = settings.path;
   document.getElementById('sToken').value = settings.token;
+  document.getElementById('sPagesUrl').value = settings.pagesUrl || '';
+  const pd = document.getElementById('pagesLinkDisplay');
+  if (settings.pagesUrl) {
+    pd.style.display = 'block';
+    document.getElementById('pagesLinkAnchor').href = settings.pagesUrl;
+    document.getElementById('pagesLinkAnchor').textContent = settings.pagesUrl;
+  } else { pd.style.display = 'none'; }
   document.getElementById('settingsOverlay').classList.add('open');
 }
 
@@ -940,10 +960,22 @@ function saveSettings() {
   settings.repo = document.getElementById('sRepo').value.trim();
   settings.path = document.getElementById('sPath').value.trim();
   settings.token = document.getElementById('sToken').value.trim();
+  settings.pagesUrl = document.getElementById('sPagesUrl').value.trim();
   localStorage.setItem('sticker_settings', JSON.stringify(settings));
   closeModal('settingsOverlay');
-  toast('设置已保存', 'success');
+  toast('设置已保存 ✓', 'success');
   updateSyncStatus('warn', '设置已更新，建议先拉取');
+  renderPagesLink();
+}
+
+function renderPagesLink() {
+  const bar = document.getElementById('pagesLinkBar');
+  if (settings.pagesUrl) {
+    bar.innerHTML = `🌐 <a href="${settings.pagesUrl}" target="_blank" style="color:var(--moss-light);font-size:11px">${settings.pagesUrl}</a>`;
+    bar.style.display = 'inline';
+  } else {
+    bar.style.display = 'none';
+  }
 }
 
 function closeModal(id) {
