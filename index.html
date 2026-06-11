@@ -401,6 +401,33 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ── BRAND GROUP ── */
+  .brand-group-header {
+    grid-column: 1 / -1;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--moss);
+    padding: 8px 4px 4px;
+    border-bottom: 2px solid var(--moss-pale);
+    margin-bottom: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.03em;
+  }
+  .brand-group-header:hover { color: var(--moss-light); }
+  .brand-count {
+    background: var(--moss-pale);
+    color: var(--moss);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
   /* scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--cream-dark); }
@@ -450,6 +477,9 @@
     <option value="arrived">已到货</option>
     <option value="using">贴中</option>
     <option value="done">贴完</option>
+  </select>
+  <select class="filter-select" id="filterBrand" onchange="renderGrid()">
+    <option value="">全部品牌</option>
   </select>
   <select class="filter-select" id="filterPlatform" onchange="renderGrid()">
     <option value="">全部平台</option>
@@ -660,6 +690,7 @@ function init() {
   renderGrid();
   renderStats();
   renderPlatformFilter();
+  renderBrandFilter();
   // Auto-pull on load if token configured
   if (settings.token && settings.owner && settings.repo) {
     syncFromGitHub();
@@ -675,11 +706,13 @@ function getFiltered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const st = document.getElementById('filterStatus').value;
   const pl = document.getElementById('filterPlatform').value;
+  const br = document.getElementById('filterBrand').value;
   return entries.filter(e => {
     const matchQ = !q || [e.brand, e.version, e.platform, e.note].some(f => f && f.toLowerCase().includes(q));
     const matchSt = !st || e.status === st;
     const matchPl = !pl || e.platform === pl;
-    return matchQ && matchSt && matchPl;
+    const matchBr = !br || e.brand === br;
+    return matchQ && matchSt && matchPl && matchBr;
   });
 }
 
@@ -693,7 +726,28 @@ function renderGrid() {
     return;
   }
 
-  grid.innerHTML = filtered.map(e => `
+  // Group by brand
+  const activeBrand = document.getElementById('filterBrand').value;
+  if (!activeBrand) {
+    const grouped = {};
+    filtered.forEach(e => {
+      const b = e.brand || '未知品牌';
+      if (!grouped[b]) grouped[b] = [];
+      grouped[b].push(e);
+    });
+    let html = '';
+    Object.keys(grouped).sort().forEach(brand => {
+      html += `<div class="brand-group-header" onclick="setBrandFilter('${esc(brand)}')">${esc(brand)} <span class="brand-count">${grouped[brand].length}</span></div>`;
+      grouped[brand].forEach(e => { html += renderCard(e); });
+    });
+    grid.innerHTML = html;
+  } else {
+    grid.innerHTML = filtered.map(e => renderCard(e)).join('');
+  }
+}
+
+function renderCard(e) {
+  return `
     <div class="card">
       <div class="card-top">
         <div>
@@ -723,7 +777,7 @@ function renderGrid() {
         <button class="btn btn-danger btn-sm" data-action="delete" data-id="${e.id}">删除</button>
       </div>
     </div>
-  `).join('');
+  `;
 }
 
 function renderStats() {
@@ -752,6 +806,19 @@ function renderPlatformFilter() {
   const cur = sel.value;
   sel.innerHTML = '<option value="">全部平台</option>' + platforms.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
   sel.value = cur;
+}
+
+function renderBrandFilter() {
+  const brands = [...new Set(entries.map(e => e.brand).filter(Boolean))].sort();
+  const sel = document.getElementById('filterBrand');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全部品牌</option>' + brands.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  sel.value = cur;
+}
+
+function setBrandFilter(brand) {
+  document.getElementById('filterBrand').value = brand;
+  renderGrid();
 }
 
 // ── CRUD ───────────────────────────────────────
@@ -817,6 +884,7 @@ function saveEntry() {
   renderGrid();
   renderStats();
   renderPlatformFilter();
+  renderBrandFilter();
 }
 
 function deleteEntry(id) {
@@ -826,6 +894,7 @@ function deleteEntry(id) {
   renderGrid();
   renderStats();
   renderPlatformFilter();
+  renderBrandFilter();
   toast('已删除');
 }
 
@@ -925,6 +994,7 @@ function saveBundle() {
   renderGrid();
   renderStats();
   renderPlatformFilter();
+  renderBrandFilter();
   toast(`已添加 ${items.length} 张，均摊 ${cur} ${perPrice} / 张 ✓`, 'success');
 }
 
@@ -968,6 +1038,7 @@ async function syncFromGitHub() {
     renderGrid();
     renderStats();
     renderPlatformFilter();
+  renderBrandFilter();
     updateSyncStatus('ok', `已同步 · ${new Date().toLocaleString('zh-CN')}`);
     document.getElementById('lastSync').textContent = `上次同步：${new Date().toLocaleTimeString('zh-CN')}`;
     toast('拉取成功 ✓', 'success');
@@ -1074,9 +1145,8 @@ function renderPagesLink() {
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
-document.querySelectorAll('.overlay').forEach(o => {
-  o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); });
-});
+// Click outside only closes settings overlay (not add/edit/bundle)
+document.getElementById('settingsOverlay').addEventListener('click', e => { if(e.target === document.getElementById('settingsOverlay')) closeModal('settingsOverlay'); });
 
 // ── UTILS ──────────────────────────────────────
 function updateSyncStatus(state, msg) {
