@@ -762,6 +762,19 @@
         <input class="form-input" id="shEta" type="date">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">集运费用</label>
+        <input class="form-input" id="shFee" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">费用货币</label>
+        <select class="form-select" id="shFeeCur">
+          <option value="RM">RM</option>
+          <option value="¥">¥ (CNY)</option>
+        </select>
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">备注</label>
       <input class="form-input" id="shNote" placeholder="仓库地址、备注…">
@@ -1422,6 +1435,8 @@ function openNewShipment(preSelected) {
   document.getElementById('shStatus').value = 'pending';
   document.getElementById('shEta').value = '';
   document.getElementById('shNote').value = '';
+  document.getElementById('shFee').value = '';
+  document.getElementById('shFeeCur').value = 'RM';
   renderShipItemSelector(preSelected || []);
   document.getElementById('shipmentOverlay').classList.add('open');
 }
@@ -1447,6 +1462,8 @@ function openEditShipment(id) {
   document.getElementById('shStatus').value = s.status || 'pending';
   document.getElementById('shEta').value = s.eta || '';
   document.getElementById('shNote').value = s.note || '';
+  document.getElementById('shFee').value = s.fee || '';
+  document.getElementById('shFeeCur').value = s.feeCur || 'RM';
   renderShipItemSelector(s.entryIds || []);
   document.getElementById('shipmentOverlay').classList.add('open');
 }
@@ -1476,9 +1493,11 @@ function saveShipment() {
   const note = document.getElementById('shNote').value.trim();
   const checked = [...document.getElementById('shItemSelector').querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
 
+  const fee = document.getElementById('shFee').value || '';
+  const feeCur = document.getElementById('shFeeCur').value;
   const shipment = {
     id: editingShipId || Date.now().toString(36) + Math.random().toString(36).slice(2,5),
-    carrier, tracking, status, eta, note,
+    carrier, tracking, status, eta, note, fee, feeCur,
     entryIds: checked,
     createdAt: editingShipId ? (shipments.find(s=>s.id===editingShipId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -1521,6 +1540,12 @@ function deleteShipment(id) {
 }
 
 // ── RENDER SHIPMENTS ───────────────────────────
+function toRM(amount, currency) {
+  const rate = parseFloat(localStorage.getItem('cny_to_rm') || '0.65');
+  if (!amount || isNaN(parseFloat(amount))) return 0;
+  return currency === '¥' ? parseFloat(amount) * rate : parseFloat(amount);
+}
+
 function renderShipments() {
   const grid = document.getElementById('shipmentGrid');
   if (shipments.length === 0) {
@@ -1531,29 +1556,46 @@ function renderShipments() {
     const linked = entries.filter(e => s.entryIds && s.entryIds.includes(e.id));
     const statusColor = SHIP_STATUS_COLOR[s.status] || '#aaa';
     const statusLabel = SHIP_STATUS_LABEL[s.status] || s.status;
+
+    // cost calculation
+    const feeRM = toRM(s.fee, s.feeCur || 'RM');
+    const feePerItem = linked.length > 0 && feeRM > 0 ? feeRM / linked.length : 0;
+    const stickerTotalRM = linked.reduce((sum, e) => sum + toRM(e.price, e.currency), 0);
+    const grandTotalRM = stickerTotalRM + feeRM;
+
+    const feeLabel = s.fee ? `${s.feeCur || 'RM'} ${parseFloat(s.fee).toFixed(2)}` : '—';
+
     return `
     <div class="shipment-card">
       <div class="shipment-head">
         <div>
           <div class="shipment-title">${esc(s.carrier||'未填平台')}</div>
-          <div class="shipment-sub">${s.tracking ? '📦 ' + esc(s.tracking) : '暂无追踪号'} · 创建于 ${new Date(s.createdAt).toLocaleDateString('zh-CN')}</div>
+          <div class="shipment-sub">${s.tracking ? '📦 ' + esc(s.tracking) : '暂无追踪号'} · ${new Date(s.createdAt).toLocaleDateString('zh-CN')}</div>
         </div>
         <span class="status-badge" style="background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44">${statusLabel}</span>
       </div>
       <div class="shipment-meta">
         <div class="meta-item"><div class="meta-label">📅 预计到达</div><div class="meta-value">${s.eta||'—'}</div></div>
-        <div class="meta-item"><div class="meta-label">📝 备注</div><div class="meta-value">${esc(s.note)||'—'}</div></div>
-        <div class="meta-item"><div class="meta-label">📦 贴纸数</div><div class="meta-value">${linked.length} 张</div></div>
+        <div class="meta-item"><div class="meta-label">🚚 运费</div><div class="meta-value" style="font-weight:600;color:var(--sky)">${feeLabel}${feePerItem > 0 ? `<span style="font-size:10px;color:#aaa;font-weight:400;margin-left:4px">÷${linked.length}张 = RM ${feePerItem.toFixed(2)}/张</span>` : ''}</div></div>
+        <div class="meta-item"><div class="meta-label">🏷 贴纸合计</div><div class="meta-value">RM ${stickerTotalRM.toFixed(2)}</div></div>
+        <div class="meta-item"><div class="meta-label">💰 总花费</div><div class="meta-value" style="font-weight:700;color:var(--bark);font-size:13px">RM ${grandTotalRM.toFixed(2)}</div></div>
+        ${s.note ? `<div class="meta-item" style="grid-column:1/-1"><div class="meta-label">📝 备注</div><div class="meta-value">${esc(s.note)}</div></div>` : ''}
       </div>
       ${linked.length > 0 ? `
       <div class="shipment-items">
-        ${linked.map(e => `
+        ${linked.map(e => {
+          const itemRM = toRM(e.price, e.currency);
+          const totalItem = itemRM + feePerItem;
+          const priceStr = e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}` : '—';
+          const totalStr = totalItem > 0 ? `RM ${totalItem.toFixed(2)}` : '—';
+          return `
           <div class="shipment-item-row">
             <span class="sitem-brand">${esc(e.brand)}</span>
             <span class="sitem-version">${esc(e.version)}</span>
-            <span class="status-badge ${STATUS_CLASS[e.status]||''}" style="font-size:10px;padding:2px 7px">${STATUS_LABEL[e.status]||''}</span>
-          </div>
-        `).join('')}
+            <span style="font-size:10px;color:var(--ink-soft);margin-left:auto">${priceStr}</span>
+            ${feePerItem > 0 ? `<span style="font-size:10px;color:var(--bark);font-weight:600;margin-left:6px">到手 ${totalStr}</span>` : ''}
+          </div>`;
+        }).join('')}
       </div>` : ''}
       <div class="shipment-actions">
         <button class="btn btn-ghost btn-sm" data-ship-action="edit" data-ship-id="${s.id}">✏ 编辑</button>
