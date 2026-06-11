@@ -1,6 +1,38 @@
 {
   "entries": [
     {
+      "id": "mq9925w3-s7b",
+      "brand": "九亩",
+      "version": "天文图书馆",
+      "price": "13.40",
+      "currency": "¥",
+      "bundleTotal": "26.8",
+      "bundleCount": "2",
+      "bundleId": "mq9925w3",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (2张 共¥26.8)",
+      "date": "2026/6/11",
+      "updatedAt": "2026-06-11T08:42:43.923Z"
+    },
+    {
+      "id": "mq9925w3-3wq",
+      "brand": "九亩",
+      "version": "魔法少女卧室",
+      "price": "13.40",
+      "currency": "¥",
+      "bundleTotal": "26.8",
+      "bundleCount": "2",
+      "bundleId": "mq9925w3",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (2张 共¥26.8)",
+      "date": "2026/6/11",
+      "updatedAt": "2026-06-11T08:42:43.923Z"
+    },
+    {
       "id": "mq8xgm3k-ij9",
       "brand": "浣熊鱼",
       "version": "猫的旅行日记5.0-颜料商的移动铺子",
