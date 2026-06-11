@@ -157,14 +157,16 @@
       "id": "mq8v2d6x94uo",
       "brand": "提拉多",
       "version": "微缩场景合集本9.0",
-      "price": "23.48",
+      "price": "3.3543",
+      "setPrice": "23.48",
+      "qty": 7,
       "currency": "RM",
       "platform": "Shopee",
       "status": "using",
       "link": "",
       "note": "",
       "date": "2026/6/11",
-      "updatedAt": "2026-06-11T02:57:46.653Z"
+      "updatedAt": "2026-06-11T08:16:50.246Z"
     }
   ],
   "shipments": []
