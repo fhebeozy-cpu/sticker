@@ -519,6 +519,39 @@
     width: 18px; height: 18px; accent-color: var(--moss);
   }
 
+  /* ── REPORT ── */
+  .report-brand-block { margin-bottom: 28px; }
+  .report-brand-hd {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px; font-weight: 700; color: var(--moss);
+    padding: 8px 4px 6px;
+    border-bottom: 2px solid var(--moss-pale);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .report-brand-hd .rbd-total {
+    margin-left: auto; font-size: 12px; font-weight: 500;
+    color: var(--bark); font-family: 'Noto Sans SC', sans-serif;
+  }
+  .report-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .report-table th {
+    background: var(--cream-dark); padding: 7px 12px;
+    text-align: left; font-weight: 600; color: var(--ink-soft);
+    font-size: 11px; letter-spacing: 0.04em;
+    position: sticky; top: 0;
+  }
+  .report-table th:last-child, .report-table td:last-child { text-align: right; }
+  .report-table td { padding: 8px 12px; border-bottom: 1px solid var(--cream-dark); color: var(--ink); }
+  .report-table tr:last-child td { border-bottom: none; }
+  .report-table tr:nth-child(even) td { background: var(--cream); }
+  .report-table .td-ver { color: var(--ink-soft); }
+  .report-table .td-price { color: var(--ink-soft); font-size: 11px; }
+  .report-table .td-ship { color: var(--sky); font-size: 11px; }
+  .report-table .td-total { font-weight: 700; color: var(--bark); }
+  .report-table .td-cny { font-size: 10px; color: #aaa; display: block; }
+  .report-table-wrap { background: var(--paper); border-radius: 10px; box-shadow: 0 2px 10px var(--shadow); overflow: hidden; border: 1.5px solid rgba(0,0,0,0.05); margin-bottom: 6px; }
+  .report-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+
   /* scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--cream-dark); }
@@ -549,6 +582,7 @@
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab('stickers')">🌿 贴纸收藏</button>
   <button class="tab-btn" onclick="switchTab('shipments')">🚚 集运管理</button>
+  <button class="tab-btn" onclick="switchTab('report')">📊 费用报告</button>
 </div>
 
 <!-- SYNC BAR -->
@@ -601,6 +635,15 @@
 </div>
 <div class="shipment-grid" id="shipmentGrid"></div>
 </div><!-- /tab-shipments -->
+
+<!-- REPORT PAGE -->
+<div id="tab-report" class="tab-page">
+  <div style="padding:16px 28px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div style="font-size:13px;color:var(--ink-soft)">含运费分摊的实际到手价，按品牌分组</div>
+    <button class="btn btn-ghost btn-sm" onclick="changeRate();renderReport()">汇率设置</button>
+  </div>
+  <div id="reportContent" style="padding:0 28px 48px"></div>
+</div><!-- /tab-report -->
 
 <!-- ADD/EDIT MODAL -->
 <div class="overlay" id="editOverlay">
@@ -1440,6 +1483,122 @@ function switchTab(tab) {
     if (b.getAttribute('onclick').includes(tab)) b.classList.add('active');
   });
   if (tab === 'shipments') renderShipments();
+  if (tab === 'report') renderReport();
+}
+
+// ── REPORT ─────────────────────────────────────
+function getShipFeePerEntry() {
+  // returns map: entryId -> feeRM allocated
+  const map = {};
+  shipments.forEach(s => {
+    if (!s.entryIds || !s.entryIds.length) return;
+    const feeRM = toRM(s.fee, s.feeCur || 'RM');
+    if (!feeRM) return;
+    const perItem = feeRM / s.entryIds.length;
+    s.entryIds.forEach(eid => {
+      map[eid] = (map[eid] || 0) + perItem;
+    });
+  });
+  return map;
+}
+
+function renderReport() {
+  const rate = parseFloat(localStorage.getItem('cny_to_rm') || '0.65');
+  const feeMap = getShipFeePerEntry();
+  const el = document.getElementById('reportContent');
+
+  const relevant = entries.filter(e => e.status !== 'wishlist');
+  if (!relevant.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>还没有贴纸记录</p></div>';
+    return;
+  }
+
+  // group by brand
+  const brands = {};
+  relevant.forEach(e => {
+    const b = e.brand || '未知品牌';
+    if (!brands[b]) brands[b] = [];
+    brands[b].push(e);
+  });
+
+  // overall summary
+  let grandRM = 0;
+  let grandCNY = 0;
+  relevant.forEach(e => {
+    const fee = feeMap[e.id] || 0;
+    const itemRM = toRM(e.price, e.currency);
+    grandRM += itemRM + fee;
+    if (e.currency === '¥') grandCNY += parseFloat(e.price || 0);
+  });
+  const grandRMDirect = relevant.filter(e => e.currency === 'RM').reduce((s,e) => s + toRM(e.price, e.currency), 0);
+
+  let summaryHTML = `<div class="report-summary">
+    <div class="stat-chip"><strong style="color:var(--bark)">RM ${grandRM.toFixed(2)}</strong>总实际花费（含运费）</div>
+    ${grandCNY > 0 ? `<div class="stat-chip"><strong style="color:var(--moss)">¥ ${grandCNY.toFixed(2)}</strong>人民币部分 <span style="font-size:10px;color:#aaa">≈ RM ${(grandCNY * rate).toFixed(2)}</span></div>` : ''}
+    ${grandRMDirect > 0 ? `<div class="stat-chip"><strong style="color:var(--moss)">RM ${grandRMDirect.toFixed(2)}</strong>马币部分</div>` : ''}
+    <div class="stat-chip"><strong>${relevant.length}</strong>张（不含心愿款）</div>
+  </div>`;
+
+  let blocksHTML = Object.keys(brands).sort().map(brand => {
+    const items = brands[brand];
+    let brandTotalRM = 0;
+    let brandHasCNY = false;
+    let brandCNY = 0;
+
+    const rows = items.map(e => {
+      const fee = feeMap[e.id] || 0;
+      const itemRM = toRM(e.price, e.currency);
+      const totalItem = itemRM + fee;
+      brandTotalRM += totalItem;
+      const hasCNY = e.currency === '¥';
+      if (hasCNY) { brandHasCNY = true; brandCNY += parseFloat(e.price || 0); }
+
+      // price display
+      const qty = e.qty || 1;
+      const setPrice = e.setPrice ? `${e.currency} ${parseFloat(e.setPrice).toFixed(2)}/${qty}张` : (e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}/张` : '—');
+      const shipStr = fee > 0 ? `+RM ${fee.toFixed(2)}运费` : '—';
+
+      // total per sheet
+      let totalStr = '';
+      let totalSubStr = '';
+      if (hasCNY) {
+        totalStr = `RM ${totalItem.toFixed(2)}`;
+        totalSubStr = `¥ ${parseFloat(e.price||0).toFixed(2)} × ${rate} + 运费`;
+      } else {
+        totalStr = `RM ${totalItem.toFixed(2)}`;
+      }
+
+      return `<tr>
+        <td class="td-ver">${esc(e.version||'—')}</td>
+        <td class="td-price">${esc(setPrice)}</td>
+        <td class="td-ship">${shipStr}</td>
+        <td class="td-total">${totalStr}${totalSubStr ? `<span class="td-cny">${totalSubStr}</span>` : ''}</td>
+      </tr>`;
+    }).join('');
+
+    const brandTotalDisplay = `RM ${brandTotalRM.toFixed(2)}` +
+      (brandHasCNY ? ` (含¥${brandCNY.toFixed(2)} ≈RM ${(brandCNY*rate).toFixed(2)})` : '');
+
+    return `<div class="report-brand-block">
+      <div class="report-brand-hd">
+        ${esc(brand)} <span class="grp-count">${items.length}张</span>
+        <span class="rbd-total">${brandTotalDisplay}</span>
+      </div>
+      <div class="report-table-wrap">
+        <table class="report-table">
+          <thead><tr>
+            <th>系列 / 版本</th>
+            <th>购买价</th>
+            <th>分摊运费</th>
+            <th>实际到手价/张</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = summaryHTML + blocksHTML;
 }
 
 // ── SELECT MODE ────────────────────────────────
