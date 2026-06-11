@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mq99394e5hcy",
+      "brand": "九亩",
+      "version": "天文图书馆",
+      "price": "14.9",
+      "setPrice": "14.9",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/11",
+      "updatedAt": "2026-06-11T08:43:34.766Z"
+    },
+    {
       "id": "mq9925w3-s7b",
       "brand": "九亩",
       "version": "天文图书馆",
