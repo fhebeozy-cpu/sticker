@@ -882,7 +882,10 @@ async function syncFromGitHub() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     githubSHA = data.sha;
-    const content = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const b64 = data.content.replace(/\n/g,'');
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const decoded = new TextDecoder('utf-8').decode(bytes);
+    const content = JSON.parse(decoded);
     entries = content;
     saveLocal();
     renderGrid();
@@ -904,7 +907,10 @@ async function syncToGitHub() {
   updateSyncStatus('idle', '正在保存到 GitHub…');
   try {
     const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}`;
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(entries, null, 2))));
+    const json = JSON.stringify(entries, null, 2);
+    const bytes2 = new TextEncoder().encode(json);
+    const b64out = btoa(String.fromCharCode(...bytes2));
+    const content = b64out;
 
     // Get current SHA if we don't have it
     if (!githubSHA) {
