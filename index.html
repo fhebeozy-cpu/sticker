@@ -952,7 +952,10 @@ function renderStats() {
   const transit = entries.filter(e => e.status === 'transit').length;
   const using = entries.filter(e => e.status === 'using').length;
   const done = entries.filter(e => e.status === 'done').length;
-  const totalSpent = entries.filter(e => e.price && e.currency === 'RM' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
+  const spentRM = entries.filter(e => e.price && e.currency === 'RM' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
+  const spentCNY = entries.filter(e => e.price && e.currency === '¥' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
+  const rate = parseFloat(localStorage.getItem('cny_to_rm') || '0.65');
+  const totalRM = spentRM + spentCNY * rate;
 
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-chip"><strong>${total}</strong>拥有总数</div>
@@ -961,7 +964,13 @@ function renderStats() {
     ${transit > 0 ? `<div class="stat-chip"><strong style="color:#8A6800">${transit}</strong>运输中</div>` : ''}
     ${using > 0 ? `<div class="stat-chip"><strong style="color:#B84A00">${using}</strong>贴中</div>` : ''}
     ${done > 0 ? `<div class="stat-chip"><strong style="color:#3D2E7D">${done}</strong>贴完</div>` : ''}
-    ${totalSpent > 0 ? `<div class="stat-chip"><strong style="color:var(--bark)">RM ${totalSpent.toFixed(2)}</strong>总支出(RM)</div>` : ''}
+    ${(spentRM > 0 || spentCNY > 0) ? `<div class="stat-chip">
+      <strong style="color:var(--bark)">RM ${totalRM.toFixed(2)}</strong>总支出
+      <div style="font-size:10px;color:var(--ink-soft);margin-top:2px;line-height:1.6">
+        ${spentRM > 0 ? `RM ${spentRM.toFixed(2)}` : ''}${spentRM > 0 && spentCNY > 0 ? ' + ' : ''}${spentCNY > 0 ? `¥ ${spentCNY.toFixed(2)}` : ''}
+        <span style="color:#bbb;margin-left:4px;cursor:pointer" onclick="changeRate()" title="点击修改汇率">汇率 ${rate}</span>
+      </div>
+    </div>` : ''}
   `;
 }
 
@@ -1163,6 +1172,16 @@ function saveBundle() {
   toast(`已添加 ${items.length} 张，均摊 ${cur} ${perPrice} / 张 ✓`, 'success');
 }
 
+
+function changeRate() {
+  const cur = localStorage.getItem('cny_to_rm') || '0.65';
+  const val = prompt('请输入 ¥1 = 多少 RM（当前汇率：' + cur + '）', cur);
+  if (val && !isNaN(parseFloat(val))) {
+    localStorage.setItem('cny_to_rm', parseFloat(val).toFixed(4));
+    renderStats();
+    toast('汇率已更新 ✓', 'success');
+  }
+}
 
 function nextStatus(id) {
   const e = entries.find(x => x.id === id);
