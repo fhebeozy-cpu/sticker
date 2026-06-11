@@ -686,8 +686,8 @@ function renderGrid() {
       ${e.note ? `<div class="card-note">${esc(e.note)}</div>` : ''}
       <div class="card-actions">
         ${e.link ? `<a href="${esc(e.link)}" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--sky);border-color:var(--sky-pale);text-decoration:none">🔗 链接</a>` : ''}
-        <button class="btn btn-ghost btn-sm" onclick="openEditModal('${e.id}')">✏ 编辑</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteEntry('${e.id}')">删除</button>
+        <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${e.id}">✏ 编辑</button>
+        <button class="btn btn-danger btn-sm" data-action="delete" data-id="${e.id}">删除</button>
       </div>
     </div>
   `).join('');
@@ -1029,6 +1029,14 @@ function esc(s) {
 function today() {
   return new Date().toLocaleDateString('zh-CN');
 }
+
+document.getElementById('grid').addEventListener('click', function(ev) {
+  const btn = ev.target.closest('[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (btn.dataset.action === 'edit') openEditModal(id);
+  if (btn.dataset.action === 'delete') deleteEntry(id);
+});
 
 init();
 </script>
