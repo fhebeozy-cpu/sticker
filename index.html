@@ -284,7 +284,7 @@
     border-left: 2px solid var(--moss-pale);
   }
 
-  .card-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .card-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; flex-wrap: wrap; }
 
   /* ── EMPTY STATE ── */
   .empty {
@@ -686,7 +686,7 @@ function renderGrid() {
       ${e.note ? `<div class="card-note">${esc(e.note)}</div>` : ''}
       <div class="card-actions">
         ${e.link ? `<a href="${esc(e.link)}" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--sky);border-color:var(--sky-pale);text-decoration:none">🔗 链接</a>` : ''}
-        <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${e.id}">✏ 编辑</button>
+        <button class="btn btn-moss btn-sm" data-action="edit" data-id="${e.id}">✏ 编辑</button>
         <button class="btn btn-danger btn-sm" data-action="delete" data-id="${e.id}">删除</button>
       </div>
     </div>
