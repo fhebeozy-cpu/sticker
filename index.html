@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>造景贴纸收藏册</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  :root {
+    --cream: #F7F3EC;
+    --cream-dark: #EDE7DA;
+    --moss: #3D5A44;
+    --moss-light: #5C7D63;
+    --moss-pale: #C8D9CA;
+    --bark: #7A5C3A;
+    --bark-light: #C4956A;
+    --paper: #FDFAF5;
+    --ink: #2A2118;
+    --ink-soft: #5A4E3C;
+    --sun: #F5C842;
+    --sun-pale: #FBF0C0;
+    --rust: #C0543A;
+    --sky: #4A7FA5;
+    --sky-pale: #D4E8F5;
+    --shadow: rgba(60,40,20,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(93,125,99,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 85% 80%, rgba(122,92,58,0.05) 0%, transparent 50%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--moss);
+    padding: 20px 28px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 3px 12px rgba(30,50,35,0.25);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-icon { font-size: 28px; line-height: 1; }
+  .header-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: 0.05em;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--moss-pale);
+    margin-top: 2px;
+    letter-spacing: 0.08em;
+  }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.12);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.22);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+  .btn-sun {
+    background: var(--sun);
+    color: var(--ink);
+  }
+  .btn-sun:hover { background: #e8bc30; }
+  .btn-moss {
+    background: var(--moss);
+    color: white;
+    border: 1px solid var(--moss-light);
+  }
+  .btn-moss:hover { background: var(--moss-light); }
+  .btn-danger { background: #fdecea; color: var(--rust); border: 1px solid #f5c6c0; }
+  .btn-danger:hover { background: #fad5d0; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  /* ── SYNC STATUS ── */
+  .sync-bar {
+    background: var(--cream-dark);
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    padding: 8px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sync-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .dot-ok { background: #4CAF50; }
+  .dot-warn { background: var(--sun); }
+  .dot-err { background: var(--rust); }
+  .dot-idle { background: #aaa; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    padding: 16px 28px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 180px;
+    max-width: 320px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    border: 1.5px solid var(--moss-pale);
+    border-radius: 8px;
+    background: var(--paper);
+    font-size: 13px;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+    outline: none;
+    transition: border 0.15s;
+  }
+  .search-box input:focus { border-color: var(--moss-light); }
+  .search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+  }
+  .filter-select {
+    padding: 8px 10px;
+    border: 1.5px solid var(--moss-pale);
+    border-radius: 8px;
+    background: var(--paper);
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+  }
+  .count-badge {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: var(--moss-pale);
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    padding: 0 28px 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--paper);
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .stat-chip strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Noto Serif SC', serif;
+    color: var(--ink);
+  }
+
+  /* ── GRID ── */
+  .grid {
+    padding: 0 28px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── STICKER CARD ── */
+  .card {
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px var(--shadow);
+    padding: 18px 18px 14px;
+    position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 1.5px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--moss), var(--bark-light));
+    border-radius: 14px 14px 0 0;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .card-brand {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--moss);
+    line-height: 1.3;
+  }
+  .card-version {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .status-badge {
+    flex-shrink: 0;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .status-wishlist { background: #F3E8FF; color: #7C3AAB; }
+  .status-pending { background: #F0EDE8; color: var(--ink-soft); }
+  .status-ordered { background: var(--sky-pale); color: #2A5F82; }
+  .status-transit { background: var(--sun-pale); color: #8A6800; }
+  .status-arrived { background: #D4F1DA; color: #2E7D42; }
+  .status-using { background: #FFE8D6; color: #B84A00; }
+  .status-done { background: #E8E4F8; color: #3D2E7D; }
+
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    margin-bottom: 12px;
+  }
+  .meta-item { font-size: 11.5px; }
+  .meta-label { color: var(--bark-light); font-size: 10px; letter-spacing: 0.05em; margin-bottom: 1px; }
+  .meta-value { color: var(--ink); font-weight: 500; }
+  .meta-price { color: var(--bark); font-weight: 700; font-size: 13px; }
+
+  .card-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    background: var(--cream);
+    border-radius: 6px;
+    padding: 6px 9px;
+    margin-bottom: 10px;
+    font-style: italic;
+    border-left: 2px solid var(--moss-pale);
+  }
+
+  .card-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* ── MODAL ── */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(30,25,15,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--moss);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--cream-dark);
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 8px;
+    background: var(--cream);
+    font-size: 13px;
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+    outline: none;
+    transition: border 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--moss-light);
+    background: var(--paper);
+  }
+  .form-textarea { resize: vertical; min-height: 70px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1.5px solid var(--cream-dark);
+  }
+
+  /* ── GITHUB SETTINGS MODAL ── */
+  .settings-section { margin-bottom: 18px; }
+  .settings-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--moss-light);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    animation: slideIn 0.2s ease;
+    max-width: 280px;
+  }
+  .toast.success { background: var(--moss); }
+  .toast.error { background: var(--rust); }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--cream-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--moss-pale); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">🌿</div>
+    <div>
+      <div class="header-title">造景贴纸收藏册</div>
+      <div class="header-sub">TERRARIUM STICKER COLLECTION</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="openSettings()">⚙ 设置</button>
+    <button class="btn btn-ghost" onclick="syncFromGitHub()">↓ 拉取</button>
+    <button class="btn btn-ghost" onclick="syncToGitHub()">↑ 保存</button>
+    <button class="btn btn-sun" onclick="openAddModal()">＋ 添加</button>
+  </div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <div>
+    <span class="sync-dot dot-idle" id="syncDot"></span>
+    <span id="syncStatus">未连接 GitHub</span>
+  </div>
+  <div id="lastSync" style="color:#999">—</div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索品牌、版本…" oninput="renderGrid()">
+  </div>
+  <select class="filter-select" id="filterStatus" onchange="renderGrid()">
+    <option value="">全部状态</option>
+    <option value="wishlist">心愿款</option>
+    <option value="pending">待付款</option>
+    <option value="ordered">已下单</option>
+    <option value="transit">运输中</option>
+    <option value="arrived">已到货</option>
+    <option value="using">贴中</option>
+    <option value="done">贴完</option>
+  </select>
+  <select class="filter-select" id="filterPlatform" onchange="renderGrid()">
+    <option value="">全部平台</option>
+  </select>
+  <div class="count-badge" id="countBadge">0 件</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row" id="statsRow"></div>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">添加新贴纸</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">品牌 *</label>
+        <input class="form-input" id="fBrand" placeholder="例：MARD">
+      </div>
+      <div class="form-group">
+        <label class="form-label">系列 / 版本 *</label>
+        <input class="form-input" id="fVersion" placeholder="例：森林系列 Vol.3">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">价格</label>
+        <input class="form-input" id="fPrice" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">货币</label>
+        <select class="form-select" id="fCurrency">
+          <option value="RM">RM</option>
+          <option value="¥">¥ (CNY)</option>
+          <option value="$">$</option>
+          <option value="SGD">SGD</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">购买平台</label>
+        <input class="form-input" id="fPlatform" list="platformList" placeholder="例：Shopee、Lazada…">
+        <datalist id="platformList">
+          <option value="Shopee">
+          <option value="Lazada">
+          <option value="Taobao">
+          <option value="1688">
+          <option value="小红书">
+          <option value="Instagram">
+          <option value="实体店">
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label class="form-label">到货状态</label>
+        <select class="form-select" id="fStatus">
+          <option value="wishlist">心愿款</option>
+          <option value="pending">待付款</option>
+          <option value="ordered">已下单</option>
+          <option value="transit">运输中</option>
+          <option value="arrived">已到货</option>
+          <option value="using">贴中</option>
+          <option value="done">贴完</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">链接（可选）</label>
+      <input class="form-input" id="fLink" type="url" placeholder="https://…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-textarea" id="fNote" placeholder="图案描述、折扣码、卖家备注…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--ink-soft);border-color:var(--cream-dark)" onclick="closeModal('editOverlay')">取消</button>
+      <button class="btn btn-moss" onclick="saveEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-title">⚙ 设置 GitHub 同步</div>
+    <div class="settings-section">
+      <h3>GitHub 仓库</h3>
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <input class="form-input" id="sOwner" placeholder="fhebeozy-cpu">
+      </div>
+      <div class="form-group">
+        <label class="form-label">仓库名</label>
+        <input class="form-input" id="sRepo" placeholder="sticker-collection">
+      </div>
+      <div class="form-group">
+        <label class="form-label">文件路径</label>
+        <input class="form-input" id="sPath" placeholder="data/stickers.json">
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>认证</h3>
+      <div class="form-group">
+        <label class="form-label">GitHub Token（仅存本地）</label>
+        <input class="form-input" id="sToken" type="password" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+      <p style="font-size:11px;color:#999;margin-top:4px">
+        需要 repo 权限的 Personal Access Token。<a href="https://github.com/settings/tokens" target="_blank" style="color:var(--moss-light)">点此生成</a>
+      </p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--ink-soft);border-color:var(--cream-dark)" onclick="closeModal('settingsOverlay')">取消</button>
+      <button class="btn btn-moss" onclick="saveSettings()">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────
+let entries = [];
+let editingId = null;
+let settings = {
+  owner: 'fhebeozy-cpu',
+  repo: 'sticker-collection',
+  path: 'data/stickers.json',
+  token: ''
+};
+let githubSHA = null;
+
+// ── INIT ───────────────────────────────────────
+function init() {
+  const saved = localStorage.getItem('sticker_settings');
+  if (saved) settings = { ...settings, ...JSON.parse(saved) };
+  const local = localStorage.getItem('sticker_entries');
+  if (local) entries = JSON.parse(local);
+  updateSyncStatus('idle', '本地数据已加载');
+  renderGrid();
+  renderStats();
+  renderPlatformFilter();
+}
+
+// ── STATUS LABELS ──────────────────────────────
+const STATUS_LABEL = { wishlist:'心愿款', pending:'待付款', ordered:'已下单', transit:'运输中', arrived:'已到货', using:'贴中', done:'贴完' };
+const STATUS_CLASS = { wishlist:'status-wishlist', pending:'status-pending', ordered:'status-ordered', transit:'status-transit', arrived:'status-arrived', using:'status-using', done:'status-done' };
+
+// ── RENDER ─────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const st = document.getElementById('filterStatus').value;
+  const pl = document.getElementById('filterPlatform').value;
+  return entries.filter(e => {
+    const matchQ = !q || [e.brand, e.version, e.platform, e.note].some(f => f && f.toLowerCase().includes(q));
+    const matchSt = !st || e.status === st;
+    const matchPl = !pl || e.platform === pl;
+    return matchQ && matchSt && matchPl;
+  });
+}
+
+function renderGrid() {
+  const filtered = getFiltered();
+  const grid = document.getElementById('grid');
+  document.getElementById('countBadge').textContent = filtered.length + ' 件';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🌱</div><p>${entries.length===0?'还没有记录，点击右上角"＋ 添加"开始收藏！':'没有符合筛选条件的贴纸'}</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(e => `
+    <div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-brand">${esc(e.brand)}</div>
+          <div class="card-version">${esc(e.version)}</div>
+        </div>
+        <span class="status-badge ${STATUS_CLASS[e.status]||'status-pending'}">${STATUS_LABEL[e.status]||e.status}</span>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">💰 价格</div>
+          <div class="meta-price">${e.price ? e.currency + ' ' + parseFloat(e.price).toFixed(2) : '—'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">🛒 购买平台</div>
+          <div class="meta-value">${esc(e.platform)||'—'}</div>
+        </div>
+        <div class="meta-item" style="grid-column:1/-1">
+          <div class="meta-label">📅 记录日期</div>
+          <div class="meta-value">${e.date||'—'}</div>
+        </div>
+      </div>
+      ${e.note ? `<div class="card-note">${esc(e.note)}</div>` : ''}
+      <div class="card-actions">
+        ${e.link ? `<a href="${esc(e.link)}" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--sky);border-color:var(--sky-pale);text-decoration:none">🔗 链接</a>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="openEditModal('${e.id}')">✏ 编辑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEntry('${e.id}')">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderStats() {
+  const total = entries.filter(e => e.status !== 'wishlist').length;
+  const wishlist = entries.filter(e => e.status === 'wishlist').length;
+  const arrived = entries.filter(e => e.status === 'arrived').length;
+  const transit = entries.filter(e => e.status === 'transit').length;
+  const using = entries.filter(e => e.status === 'using').length;
+  const done = entries.filter(e => e.status === 'done').length;
+  const totalSpent = entries.filter(e => e.price && e.currency === 'RM' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-chip"><strong>${total}</strong>拥有总数</div>
+    ${wishlist > 0 ? `<div class="stat-chip"><strong style="color:#7C3AAB">${wishlist}</strong>心愿款</div>` : ''}
+    <div class="stat-chip"><strong style="color:#2E7D42">${arrived}</strong>已到货</div>
+    ${transit > 0 ? `<div class="stat-chip"><strong style="color:#8A6800">${transit}</strong>运输中</div>` : ''}
+    ${using > 0 ? `<div class="stat-chip"><strong style="color:#B84A00">${using}</strong>贴中</div>` : ''}
+    ${done > 0 ? `<div class="stat-chip"><strong style="color:#3D2E7D">${done}</strong>贴完</div>` : ''}
+    ${totalSpent > 0 ? `<div class="stat-chip"><strong style="color:var(--bark)">RM ${totalSpent.toFixed(2)}</strong>总支出(RM)</div>` : ''}
+  `;
+}
+
+function renderPlatformFilter() {
+  const platforms = [...new Set(entries.map(e => e.platform).filter(Boolean))];
+  const sel = document.getElementById('filterPlatform');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全部平台</option>' + platforms.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  sel.value = cur;
+}
+
+// ── CRUD ───────────────────────────────────────
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '添加新贴纸';
+  ['fBrand','fVersion','fPrice','fLink','fNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fCurrency').value = 'RM';
+  document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fPlatform').value = '';
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function openEditModal(id) {
+  editingId = id;
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('modalTitle').textContent = '编辑贴纸';
+  document.getElementById('fBrand').value = e.brand;
+  document.getElementById('fVersion').value = e.version;
+  document.getElementById('fPrice').value = e.price || '';
+  document.getElementById('fCurrency').value = e.currency || 'RM';
+  document.getElementById('fPlatform').value = e.platform || '';
+  document.getElementById('fStatus').value = e.status;
+  document.getElementById('fLink').value = e.link || '';
+  document.getElementById('fNote').value = e.note || '';
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function saveEntry() {
+  const brand = document.getElementById('fBrand').value.trim();
+  const version = document.getElementById('fVersion').value.trim();
+  if (!brand || !version) { toast('品牌和版本不能为空', 'error'); return; }
+
+  const entry = {
+    id: editingId || Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    brand,
+    version,
+    price: document.getElementById('fPrice').value || '',
+    currency: document.getElementById('fCurrency').value,
+    platform: document.getElementById('fPlatform').value.trim(),
+    status: document.getElementById('fStatus').value,
+    link: document.getElementById('fLink').value.trim(),
+    note: document.getElementById('fNote').value.trim(),
+    date: editingId ? (entries.find(e => e.id === editingId)?.date || today()) : today(),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingId) {
+    const idx = entries.findIndex(e => e.id === editingId);
+    entries[idx] = entry;
+    toast('已更新 ✓', 'success');
+  } else {
+    entries.unshift(entry);
+    toast('已添加 ✓', 'success');
+  }
+
+  saveLocal();
+  closeModal('editOverlay');
+  renderGrid();
+  renderStats();
+  renderPlatformFilter();
+}
+
+function deleteEntry(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  entries = entries.filter(e => e.id !== id);
+  saveLocal();
+  renderGrid();
+  renderStats();
+  renderPlatformFilter();
+  toast('已删除');
+}
+
+function saveLocal() {
+  localStorage.setItem('sticker_entries', JSON.stringify(entries));
+  updateSyncStatus('warn', '有未同步的更改');
+}
+
+// ── GITHUB SYNC ────────────────────────────────
+async function syncFromGitHub() {
+  if (!settings.token || !settings.owner) { openSettings(); return; }
+  updateSyncStatus('idle', '正在从 GitHub 拉取…');
+  try {
+    const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}`;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (res.status === 404) {
+      updateSyncStatus('ok', '文件不存在，将在保存时创建');
+      toast('文件不存在，可直接添加后保存');
+      return;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    githubSHA = data.sha;
+    const content = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    entries = content;
+    saveLocal();
+    renderGrid();
+    renderStats();
+    renderPlatformFilter();
+    updateSyncStatus('ok', `已同步 · ${new Date().toLocaleString('zh-CN')}`);
+    document.getElementById('lastSync').textContent = `上次同步：${new Date().toLocaleTimeString('zh-CN')}`;
+    toast('拉取成功 ✓', 'success');
+    // Clear unsaved indicator after pull
+    localStorage.setItem('sticker_entries', JSON.stringify(entries));
+  } catch(e) {
+    updateSyncStatus('err', '拉取失败：' + e.message);
+    toast('拉取失败：' + e.message, 'error');
+  }
+}
+
+async function syncToGitHub() {
+  if (!settings.token || !settings.owner) { openSettings(); return; }
+  updateSyncStatus('idle', '正在保存到 GitHub…');
+  try {
+    const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}`;
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(entries, null, 2))));
+
+    // Get current SHA if we don't have it
+    if (!githubSHA) {
+      const check = await fetch(url, {
+        headers: { 'Authorization': `token ${settings.token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (check.ok) {
+        const d = await check.json();
+        githubSHA = d.sha;
+      }
+    }
+
+    const body = {
+      message: `更新贴纸记录 ${new Date().toLocaleString('zh-CN')}`,
+      content,
+      ...(githubSHA ? { sha: githubSHA } : {})
+    };
+
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${settings.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+
+    const result = await res.json();
+    githubSHA = result.content.sha;
+    updateSyncStatus('ok', `已保存 · ${new Date().toLocaleString('zh-CN')}`);
+    document.getElementById('lastSync').textContent = `上次保存：${new Date().toLocaleTimeString('zh-CN')}`;
+    toast('保存成功 ✓', 'success');
+  } catch(e) {
+    updateSyncStatus('err', '保存失败：' + e.message);
+    toast('保存失败：' + e.message, 'error');
+  }
+}
+
+// ── SETTINGS ───────────────────────────────────
+function openSettings() {
+  document.getElementById('sOwner').value = settings.owner;
+  document.getElementById('sRepo').value = settings.repo;
+  document.getElementById('sPath').value = settings.path;
+  document.getElementById('sToken').value = settings.token;
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+
+function saveSettings() {
+  settings.owner = document.getElementById('sOwner').value.trim();
+  settings.repo = document.getElementById('sRepo').value.trim();
+  settings.path = document.getElementById('sPath').value.trim();
+  settings.token = document.getElementById('sToken').value.trim();
+  localStorage.setItem('sticker_settings', JSON.stringify(settings));
+  closeModal('settingsOverlay');
+  toast('设置已保存', 'success');
+  updateSyncStatus('warn', '设置已更新，建议先拉取');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); });
+});
+
+// ── UTILS ──────────────────────────────────────
+function updateSyncStatus(state, msg) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot';
+  if(state==='ok') dot.classList.add('dot-ok');
+  else if(state==='warn') dot.classList.add('dot-warn');
+  else if(state==='err') dot.classList.add('dot-err');
+  else dot.classList.add('dot-idle');
+  document.getElementById('syncStatus').textContent = msg;
+}
+
+function toast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function today() {
+  return new Date().toLocaleDateString('zh-CN');
+}
+
+init();
+</script>
+</body>
+</html>
