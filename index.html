@@ -614,6 +614,7 @@ let settings = {
   pagesUrl: ''
 };
 let githubSHA = null;
+let autoSaveTimer = null;
 
 // ── INIT ───────────────────────────────────────
 function init() {
@@ -626,6 +627,10 @@ function init() {
   renderGrid();
   renderStats();
   renderPlatformFilter();
+  // Auto-pull on load if token configured
+  if (settings.token && settings.owner && settings.repo) {
+    syncFromGitHub();
+  }
 }
 
 // ── STATUS LABELS ──────────────────────────────
@@ -849,7 +854,12 @@ function updatePricePreview() {
 
 function saveLocal() {
   localStorage.setItem('sticker_entries', JSON.stringify(entries));
-  updateSyncStatus('warn', '有未同步的更改');
+  updateSyncStatus('warn', '有未同步的更改，3秒后自动保存…');
+  // Auto-upload with 3s debounce
+  if (settings.token && settings.owner && settings.repo) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => syncToGitHub(), 3000);
+  }
 }
 
 // ── GITHUB SYNC ────────────────────────────────
