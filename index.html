@@ -285,6 +285,8 @@
   }
 
   .card-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; flex-wrap: wrap; }
+  .btn-next { background: var(--sun); color: var(--ink); font-weight: 600; }
+  .btn-next:hover { background: #e8bc30; }
 
   /* ── EMPTY STATE ── */
   .empty {
@@ -567,7 +569,6 @@
   <select class="filter-select" id="filterStatus" onchange="renderGrid()">
     <option value="">全部状态</option>
     <option value="wishlist">心愿款</option>
-    <option value="pending">待付款</option>
     <option value="ordered">已下单</option>
     <option value="transit">运输中</option>
     <option value="arrived">已到货</option>
@@ -648,7 +649,6 @@
         <label class="form-label">到货状态</label>
         <select class="form-select" id="fStatus">
           <option value="wishlist">心愿款</option>
-          <option value="pending">待付款</option>
           <option value="ordered">已下单</option>
           <option value="transit">运输中</option>
           <option value="arrived">已到货</option>
@@ -702,7 +702,6 @@
         <label class="form-label">到货状态</label>
         <select class="form-select" id="bStatus">
           <option value="wishlist">心愿款</option>
-          <option value="pending">待付款</option>
           <option value="ordered">已下单</option>
           <option value="transit">运输中</option>
           <option value="arrived">已到货</option>
@@ -861,8 +860,10 @@ function init() {
 }
 
 // ── STATUS LABELS ──────────────────────────────
-const STATUS_LABEL = { wishlist:'心愿款', pending:'待付款', ordered:'已下单', transit:'运输中', arrived:'已到货', using:'贴中', done:'贴完' };
-const STATUS_CLASS = { wishlist:'status-wishlist', pending:'status-pending', ordered:'status-ordered', transit:'status-transit', arrived:'status-arrived', using:'status-using', done:'status-done' };
+const STATUS_LABEL = { wishlist:'心愿款', ordered:'已下单', transit:'运输中', arrived:'已到货', using:'贴中', done:'贴完' };
+const STATUS_CLASS = { wishlist:'status-wishlist', ordered:'status-ordered', transit:'status-transit', arrived:'status-arrived', using:'status-using', done:'status-done' };
+const STATUS_NEXT  = { wishlist:'ordered', ordered:'transit', transit:'arrived', arrived:'using', using:'done' };
+const STATUS_NEXT_LABEL = { wishlist:'→ 已下单', ordered:'→ 运输中', transit:'→ 已到货', arrived:'→ 贴中', using:'→ 贴完' };
 
 // ── RENDER ─────────────────────────────────────
 function getFiltered() {
@@ -936,6 +937,7 @@ function renderCard(e) {
       ${e.note ? `<div class="card-note">${esc(e.note)}</div>` : ''}
       <div class="card-actions">
         ${e.link ? `<a href="${esc(e.link)}" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--sky);border-color:var(--sky-pale);text-decoration:none">🔗 链接</a>` : ''}
+        ${STATUS_NEXT[e.status] ? `<button class="btn btn-next btn-sm" data-action="next" data-id="${e.id}">${STATUS_NEXT_LABEL[e.status]}</button>` : ''}
         <button class="btn btn-moss btn-sm" data-action="edit" data-id="${e.id}">✏ 编辑</button>
         <button class="btn btn-danger btn-sm" data-action="delete" data-id="${e.id}">删除</button>
       </div>
@@ -990,7 +992,7 @@ function openAddModal() {
   document.getElementById('modalTitle').textContent = '添加新贴纸';
   ['fBrand','fVersion','fPrice','fLink','fNote'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('fCurrency').value = 'RM';
-  document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fStatus').value = 'wishlist';
   document.getElementById('fPlatform').value = '';
   document.getElementById('editOverlay').classList.add('open');
 }
@@ -1068,7 +1070,7 @@ function openBundleModal() {
   document.getElementById('bTotal').value = '';
   document.getElementById('bCurrency').value = 'RM';
   document.getElementById('bPlatform').value = '';
-  document.getElementById('bStatus').value = 'pending';
+  document.getElementById('bStatus').value = 'ordered';
   document.getElementById('bundlePerPrice').textContent = '';
   bundleRowCount = 0;
   document.getElementById('bundleItems').innerHTML = '';
@@ -1161,6 +1163,17 @@ function saveBundle() {
   toast(`已添加 ${items.length} 张，均摊 ${cur} ${perPrice} / 张 ✓`, 'success');
 }
 
+
+function nextStatus(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e || !STATUS_NEXT[e.status]) return;
+  e.status = STATUS_NEXT[e.status];
+  e.updatedAt = new Date().toISOString();
+  saveLocal();
+  renderGrid();
+  renderStats();
+  toast(STATUS_LABEL[e.status] + ' ✓', 'success');
+}
 
 function saveLocal() { saveLocalAll(); }
 
@@ -1549,6 +1562,7 @@ document.getElementById('grid').addEventListener('click', function(ev) {
   if (selectMode) { toggleSelectEntry(id); return; }
   if (btn.dataset.action === 'edit') openEditModal(id);
   if (btn.dataset.action === 'delete') deleteEntry(id);
+  if (btn.dataset.action === 'next') nextStatus(id);
 });
 
 document.getElementById('shipmentGrid').addEventListener('click', function(ev) {
