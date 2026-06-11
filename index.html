@@ -428,6 +428,95 @@
     font-family: 'Noto Sans SC', sans-serif;
   }
 
+
+  /* ── TABS ── */
+  .tab-nav {
+    background: var(--moss);
+    display: flex;
+    gap: 0;
+    padding: 0 28px;
+    border-top: 1px solid rgba(255,255,255,0.10);
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.85); }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--sun); }
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+
+  /* ── SHIPMENT PAGE ── */
+  .shipment-toolbar {
+    padding: 16px 28px 12px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .shipment-grid {
+    padding: 0 28px 40px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .shipment-card {
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px var(--shadow);
+    border: 1.5px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .shipment-card::before {
+    content: '';
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sky), var(--moss-light));
+  }
+  .shipment-head {
+    padding: 14px 18px 10px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .shipment-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 15px; font-weight: 700; color: var(--sky);
+  }
+  .shipment-sub { font-size: 11.5px; color: var(--ink-soft); margin-top:3px; }
+  .shipment-meta {
+    padding: 0 18px 10px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 6px 16px;
+  }
+  .shipment-items {
+    margin: 0 18px 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid var(--cream-dark);
+  }
+  .shipment-item-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .shipment-item-row:last-child { border-bottom: none; }
+  .shipment-item-row:nth-child(even) { background: var(--cream); }
+  .sitem-brand { font-weight: 600; color: var(--moss); min-width: 80px; }
+  .sitem-version { color: var(--ink-soft); flex: 1; }
+  .shipment-actions { padding: 0 18px 14px; display: flex; gap: 6px; justify-content: flex-end; }
+
+  /* select mode on cards */
+  .card.selectable { cursor: pointer; }
+  .card.selectable:hover { outline: 2px solid var(--moss-pale); }
+  .card.selected { outline: 2px solid var(--moss); background: #f0f7f1; }
+  .select-checkbox {
+    position: absolute; top: 14px; left: 14px;
+    width: 18px; height: 18px; accent-color: var(--moss);
+  }
+
   /* scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--cream-dark); }
@@ -454,7 +543,14 @@
   </div>
 </div>
 
+<!-- TAB NAV -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('stickers')">🌿 贴纸收藏</button>
+  <button class="tab-btn" onclick="switchTab('shipments')">🚚 集运管理</button>
+</div>
+
 <!-- SYNC BAR -->
+<div id="tab-stickers" class="tab-page active">
 <div class="sync-bar">
   <div>
     <span class="sync-dot dot-idle" id="syncDot"></span>
@@ -492,6 +588,18 @@
 
 <!-- GRID -->
 <div class="grid" id="grid"></div>
+</div><!-- /tab-stickers -->
+
+<!-- SHIPMENT PAGE -->
+<div id="tab-shipments" class="tab-page">
+<div class="shipment-toolbar">
+  <button class="btn btn-moss" onclick="openNewShipment()">＋ 新建集运单</button>
+  <button class="btn btn-ghost" id="btnMergeShip" onclick="openMergeShipment()" style="display:none">📦 合并选中</button>
+  <button class="btn btn-ghost" id="btnSelectMode" onclick="toggleSelectMode()">☑ 选择贴纸</button>
+  <div class="count-badge" id="shipSelectCount" style="display:none">已选 0 件</div>
+</div>
+<div class="shipment-grid" id="shipmentGrid"></div>
+</div><!-- /tab-shipments -->
 
 <!-- ADD/EDIT MODAL -->
 <div class="overlay" id="editOverlay">
@@ -616,6 +724,59 @@
   </div>
 </div>
 
+
+<!-- SHIPMENT MODAL -->
+<div class="overlay" id="shipmentOverlay">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="shipModalTitle">🚚 新建集运单</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">集运平台 / 物流</label>
+        <input class="form-input" id="shCarrier" list="carrierList" placeholder="例：Buyandship、淘宝集运…">
+        <datalist id="carrierList">
+          <option value="Buyandship">
+          <option value="Shopee物流">
+          <option value="淘宝集运">
+          <option value="4PX">
+          <option value="YunExpress">
+          <option value="J&T Express">
+          <option value="Pos Laju">
+        </datalist>
+      </div>
+      <div class="form-group">
+        <label class="form-label">追踪号</label>
+        <input class="form-input" id="shTracking" placeholder="追踪单号">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">集运状态</label>
+        <select class="form-select" id="shStatus">
+          <option value="pending">待入仓</option>
+          <option value="warehouse">已入仓</option>
+          <option value="shipped">已发出</option>
+          <option value="arrived">已到货</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">预计到达</label>
+        <input class="form-input" id="shEta" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input class="form-input" id="shNote" placeholder="仓库地址、备注…">
+    </div>
+    <div style="margin-bottom:8px;font-size:12px;color:var(--ink-soft);font-weight:500">包含贴纸</div>
+    <div id="shItemSelector" style="max-height:200px;overflow-y:auto;border:1.5px solid var(--cream-dark);border-radius:8px;margin-bottom:14px">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--ink-soft);border-color:var(--cream-dark)" onclick="closeModal('shipmentOverlay')">取消</button>
+      <button class="btn btn-moss" onclick="saveShipment()">保存集运单</button>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <div class="overlay" id="settingsOverlay">
   <div class="modal">
@@ -685,6 +846,8 @@ function init() {
   if (saved) settings = { ...settings, ...JSON.parse(saved) };
   const local = localStorage.getItem('sticker_entries');
   if (local) entries = JSON.parse(local);
+  const localShip = localStorage.getItem('sticker_shipments');
+  if (localShip) shipments = JSON.parse(localShip);
   updateSyncStatus('idle', '本地数据已加载');
   renderPagesLink();
   renderGrid();
@@ -748,7 +911,7 @@ function renderGrid() {
 
 function renderCard(e) {
   return `
-    <div class="card">
+    <div class="card${selectMode ? ' selectable' + (selectedEntryIds.has(e.id) ? ' selected' : '') : ''}" data-eid="${e.id}">
       <div class="card-top">
         <div>
           <div class="card-brand">${esc(e.brand)}</div>
@@ -999,15 +1162,7 @@ function saveBundle() {
 }
 
 
-function saveLocal() {
-  localStorage.setItem('sticker_entries', JSON.stringify(entries));
-  updateSyncStatus('warn', '有未同步的更改，3秒后自动保存…');
-  // Auto-upload with 3s debounce
-  if (settings.token && settings.owner && settings.repo) {
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(() => syncToGitHub(), 3000);
-  }
-}
+function saveLocal() { saveLocalAll(); }
 
 // ── GITHUB SYNC ────────────────────────────────
 async function syncFromGitHub() {
@@ -1033,7 +1188,12 @@ async function syncFromGitHub() {
     const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     const decoded = new TextDecoder('utf-8').decode(bytes);
     const content = JSON.parse(decoded);
-    entries = content;
+    if (Array.isArray(content)) {
+      entries = content; // legacy format
+    } else {
+      entries = content.entries || [];
+      shipments = content.shipments || [];
+    }
     saveLocal();
     renderGrid();
     renderStats();
@@ -1055,7 +1215,7 @@ async function syncToGitHub() {
   updateSyncStatus('idle', '正在保存到 GitHub…');
   try {
     const url = `https://api.github.com/repos/${settings.owner}/${settings.repo}/contents/${settings.path}`;
-    const json = JSON.stringify(entries, null, 2);
+    const json = JSON.stringify({ entries, shipments }, null, 2);
     const bytes2 = new TextEncoder().encode(json);
     const b64out = btoa(String.fromCharCode(...bytes2));
     const content = b64out;
@@ -1177,12 +1337,226 @@ function today() {
   return new Date().toLocaleDateString('zh-CN');
 }
 
+
+// ── SHIPMENT STATE ─────────────────────────────
+let shipments = [];
+let editingShipId = null;
+let selectMode = false;
+let selectedEntryIds = new Set();
+
+const SHIP_STATUS_LABEL = { pending:'待入仓', warehouse:'已入仓', shipped:'已发出', arrived:'已到货' };
+const SHIP_STATUS_COLOR = { pending:'#aaa', warehouse:'#8A6800', shipped:'#2A5F82', arrived:'#2E7D42' };
+
+// ── TAB SWITCH ─────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick').includes(tab)) b.classList.add('active');
+  });
+  if (tab === 'shipments') renderShipments();
+}
+
+// ── SELECT MODE ────────────────────────────────
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedEntryIds.clear();
+  document.getElementById('btnSelectMode').textContent = selectMode ? '✕ 取消选择' : '☑ 选择贴纸';
+  document.getElementById('btnMergeShip').style.display = selectMode ? 'inline-flex' : 'none';
+  document.getElementById('shipSelectCount').style.display = selectMode ? 'inline' : 'none';
+  renderShipments();
+  // re-render sticker tab to show checkboxes — switch to stickers tab
+  if (selectMode) switchTab('stickers');
+  renderGrid();
+}
+
+function toggleSelectEntry(id) {
+  if (selectedEntryIds.has(id)) selectedEntryIds.delete(id);
+  else selectedEntryIds.add(id);
+  document.getElementById('shipSelectCount').textContent = '已选 ' + selectedEntryIds.size + ' 件';
+  // update card visual
+  document.querySelectorAll('.card[data-eid]').forEach(c => {
+    c.classList.toggle('selected', selectedEntryIds.has(c.dataset.eid));
+  });
+}
+
+// ── OPEN NEW SHIPMENT ──────────────────────────
+function openNewShipment(preSelected) {
+  editingShipId = null;
+  document.getElementById('shipModalTitle').textContent = '🚚 新建集运单';
+  document.getElementById('shCarrier').value = '';
+  document.getElementById('shTracking').value = '';
+  document.getElementById('shStatus').value = 'pending';
+  document.getElementById('shEta').value = '';
+  document.getElementById('shNote').value = '';
+  renderShipItemSelector(preSelected || []);
+  document.getElementById('shipmentOverlay').classList.add('open');
+}
+
+function openMergeShipment() {
+  if (selectedEntryIds.size === 0) { toast('请先选择贴纸', 'error'); return; }
+  openNewShipment([...selectedEntryIds]);
+  selectMode = false;
+  selectedEntryIds.clear();
+  document.getElementById('btnSelectMode').textContent = '☑ 选择贴纸';
+  document.getElementById('btnMergeShip').style.display = 'none';
+  document.getElementById('shipSelectCount').style.display = 'none';
+  renderGrid();
+}
+
+function openEditShipment(id) {
+  const s = shipments.find(x => x.id === id);
+  if (!s) return;
+  editingShipId = id;
+  document.getElementById('shipModalTitle').textContent = '✏ 编辑集运单';
+  document.getElementById('shCarrier').value = s.carrier || '';
+  document.getElementById('shTracking').value = s.tracking || '';
+  document.getElementById('shStatus').value = s.status || 'pending';
+  document.getElementById('shEta').value = s.eta || '';
+  document.getElementById('shNote').value = s.note || '';
+  renderShipItemSelector(s.entryIds || []);
+  document.getElementById('shipmentOverlay').classList.add('open');
+}
+
+function renderShipItemSelector(preSelected) {
+  const sel = document.getElementById('shItemSelector');
+  const eligible = entries.filter(e => ['ordered','transit','arrived'].includes(e.status));
+  if (eligible.length === 0) {
+    sel.innerHTML = '<div style="padding:14px;font-size:12px;color:#aaa;text-align:center">没有符合条件的贴纸（已下单/运输中/已到货）</div>';
+    return;
+  }
+  sel.innerHTML = eligible.map(e => `
+    <label class="shipment-item-row" style="cursor:pointer">
+      <input type="checkbox" value="${e.id}" ${preSelected.includes(e.id)?'checked':''} style="accent-color:var(--moss);width:14px;height:14px;flex-shrink:0">
+      <span class="sitem-brand">${esc(e.brand)}</span>
+      <span class="sitem-version">${esc(e.version)}</span>
+      <span style="font-size:10px;color:#aaa">${STATUS_LABEL[e.status]||e.status}</span>
+    </label>
+  `).join('');
+}
+
+function saveShipment() {
+  const carrier = document.getElementById('shCarrier').value.trim();
+  const tracking = document.getElementById('shTracking').value.trim();
+  const status = document.getElementById('shStatus').value;
+  const eta = document.getElementById('shEta').value;
+  const note = document.getElementById('shNote').value.trim();
+  const checked = [...document.getElementById('shItemSelector').querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
+
+  const shipment = {
+    id: editingShipId || Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    carrier, tracking, status, eta, note,
+    entryIds: checked,
+    createdAt: editingShipId ? (shipments.find(s=>s.id===editingShipId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingShipId) {
+    const idx = shipments.findIndex(s => s.id === editingShipId);
+    shipments[idx] = shipment;
+  } else {
+    shipments.unshift(shipment);
+  }
+
+  // If shipped/arrived, update linked entries status
+  if (status === 'arrived') {
+    checked.forEach(eid => {
+      const e = entries.find(x => x.id === eid);
+      if (e && e.status !== 'arrived') e.status = 'arrived';
+    });
+  } else if (status === 'shipped') {
+    checked.forEach(eid => {
+      const e = entries.find(x => x.id === eid);
+      if (e && e.status === 'ordered') e.status = 'transit';
+    });
+  }
+
+  saveLocalAll();
+  closeModal('shipmentOverlay');
+  renderShipments();
+  renderGrid();
+  renderStats();
+  toast(editingShipId ? '集运单已更新 ✓' : '集运单已创建 ✓', 'success');
+}
+
+function deleteShipment(id) {
+  if (!confirm('确定删除这个集运单？')) return;
+  shipments = shipments.filter(s => s.id !== id);
+  saveLocalAll();
+  renderShipments();
+  toast('已删除');
+}
+
+// ── RENDER SHIPMENTS ───────────────────────────
+function renderShipments() {
+  const grid = document.getElementById('shipmentGrid');
+  if (shipments.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🚚</div><p>还没有集运单，点击「＋ 新建集运单」开始</p></div>';
+    return;
+  }
+  grid.innerHTML = shipments.map(s => {
+    const linked = entries.filter(e => s.entryIds && s.entryIds.includes(e.id));
+    const statusColor = SHIP_STATUS_COLOR[s.status] || '#aaa';
+    const statusLabel = SHIP_STATUS_LABEL[s.status] || s.status;
+    return `
+    <div class="shipment-card">
+      <div class="shipment-head">
+        <div>
+          <div class="shipment-title">${esc(s.carrier||'未填平台')}</div>
+          <div class="shipment-sub">${s.tracking ? '📦 ' + esc(s.tracking) : '暂无追踪号'} · 创建于 ${new Date(s.createdAt).toLocaleDateString('zh-CN')}</div>
+        </div>
+        <span class="status-badge" style="background:${statusColor}22;color:${statusColor};border:1px solid ${statusColor}44">${statusLabel}</span>
+      </div>
+      <div class="shipment-meta">
+        <div class="meta-item"><div class="meta-label">📅 预计到达</div><div class="meta-value">${s.eta||'—'}</div></div>
+        <div class="meta-item"><div class="meta-label">📝 备注</div><div class="meta-value">${esc(s.note)||'—'}</div></div>
+        <div class="meta-item"><div class="meta-label">📦 贴纸数</div><div class="meta-value">${linked.length} 张</div></div>
+      </div>
+      ${linked.length > 0 ? `
+      <div class="shipment-items">
+        ${linked.map(e => `
+          <div class="shipment-item-row">
+            <span class="sitem-brand">${esc(e.brand)}</span>
+            <span class="sitem-version">${esc(e.version)}</span>
+            <span class="status-badge ${STATUS_CLASS[e.status]||''}" style="font-size:10px;padding:2px 7px">${STATUS_LABEL[e.status]||''}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+      <div class="shipment-actions">
+        <button class="btn btn-ghost btn-sm" data-ship-action="edit" data-ship-id="${s.id}">✏ 编辑</button>
+        <button class="btn btn-danger btn-sm" data-ship-action="delete" data-ship-id="${s.id}">删除</button>
+      </div>
+    </div>
+  `}).join('');
+}
+
+// ── SAVE ALL (entries + shipments) ────────────────
+function saveLocalAll() {
+  localStorage.setItem('sticker_entries', JSON.stringify(entries));
+  localStorage.setItem('sticker_shipments', JSON.stringify(shipments));
+  updateSyncStatus('warn', '有未同步的更改，3秒后自动保存…');
+  if (settings.token && settings.owner && settings.repo) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => syncToGitHub(), 3000);
+  }
+}
+
 document.getElementById('grid').addEventListener('click', function(ev) {
   const btn = ev.target.closest('[data-action]');
   if (!btn) return;
   const id = btn.dataset.id;
+  if (selectMode) { toggleSelectEntry(id); return; }
   if (btn.dataset.action === 'edit') openEditModal(id);
   if (btn.dataset.action === 'delete') deleteEntry(id);
+});
+
+document.getElementById('shipmentGrid').addEventListener('click', function(ev) {
+  const btn = ev.target.closest('[data-ship-action]');
+  if (!btn) return;
+  const id = btn.dataset.shipId;
+  if (btn.dataset.shipAction === 'edit') openEditShipment(id);
+  if (btn.dataset.shipAction === 'delete') deleteShipment(id);
 });
 
 init();
