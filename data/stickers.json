@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb3l64lr1pv",
+      "brand": "才芈",
+      "version": "2.0系列-民国报社",
+      "price": "6.8",
+      "setPrice": "6.8",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:45:05.350Z"
+    },
+    {
       "id": "mqb3icx4fxpq",
       "brand": "infeelme",
       "version": "我的小屋32.0系列-E人饭桌",
