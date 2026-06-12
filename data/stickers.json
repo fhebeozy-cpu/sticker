@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb3s5lp419f",
+      "brand": "infeelme",
+      "version": "32.0系列-I 人",
+      "price": "5.5",
+      "setPrice": "5.5",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:50:31.262Z"
+    },
+    {
       "id": "mqb3r6m1oz2h",
       "brand": "朝釉",
       "version": "9.0系列-春街小趣",
