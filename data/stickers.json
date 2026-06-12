@@ -1,6 +1,42 @@
 {
   "entries": [
     {
+      "id": "mqb2kqr6-1ww",
+      "brand": "悦禧",
+      "version": "9.0系列-书桌狂想曲",
+      "price": "8.0000",
+      "setPrice": "",
+      "qty": 1,
+      "currency": "¥",
+      "bundleTotal": "16",
+      "bundleCount": "2",
+      "bundleId": "mqb2kqr6",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (共2张 ¥16)",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:16:45.811Z"
+    },
+    {
+      "id": "mqb2kqr6-fz0",
+      "brand": "悦禧",
+      "version": "9.0系列-石头小镇",
+      "price": "8.0000",
+      "setPrice": "",
+      "qty": 1,
+      "currency": "¥",
+      "bundleTotal": "16",
+      "bundleCount": "2",
+      "bundleId": "mqb2kqr6",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (共2张 ¥16)",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:16:45.811Z"
+    },
+    {
       "id": "mqae5mqb-qu5",
       "brand": "艺蓝",
       "version": "美妆店",
