@@ -693,7 +693,7 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">品牌 *</label>
-        <input class="form-input" id="fBrand" placeholder="例：MARD">
+        <select class="form-select" id="fBrand"><option value="">— 选择品牌 —</option></select>
       </div>
       <div class="form-group">
         <label class="form-label">系列 / 版本 *</label>
@@ -1208,7 +1208,7 @@ function addBundleRow() {
   div.id = 'brow-' + n;
   div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 52px auto;gap:7px;align-items:center;background:var(--cream);border-radius:8px;padding:8px 10px;';
   div.innerHTML = `
-    <input class="form-input" id="bBrand-${n}" placeholder="品牌" list="mgBrandDatalist" style="font-size:12px;padding:6px 9px">
+    <select class="form-select" id="bBrand-${n}" style="font-size:12px;padding:6px 9px">${mgBrands.map(b=>`<option value="${b}">${b}</option>`).join('')}</select>
     <input class="form-input" id="bVersion-${n}" placeholder="系列 / 版本" style="font-size:12px;padding:6px 9px">
     <input class="form-input" id="bQty-${n}" type="number" min="1" value="1" title="这套几张" style="font-size:12px;padding:6px 7px;text-align:center" oninput="updateBundlePreview()">
     <button onclick="removeBundleRow(${n})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:0 4px;line-height:1" title="移除">×</button>
@@ -1589,9 +1589,13 @@ function refreshSelectOptions() {
   const brandHtml = '<option value="">— 选择品牌 —</option>' + mgBrands.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
   const bsel = document.getElementById('fBrand');
   if (bsel) { const cur = bsel.value; bsel.innerHTML = brandHtml; bsel.value = cur; }
-  // update bundle row datalists
-  const dl = document.getElementById('mgBrandDatalist');
-  if (dl) dl.innerHTML = mgBrands.map(b => `<option value="${esc(b)}">`).join('');
+  // re-render existing bundle rows' brand selects
+  document.querySelectorAll('[id^="bBrand-"]').forEach(sel => {
+    if (sel.tagName !== 'SELECT') return;
+    const cur = sel.value;
+    sel.innerHTML = mgBrands.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+    sel.value = cur;
+  });
   // update filter dropdowns
   renderBrandFilter();
   renderPlatformFilter();
