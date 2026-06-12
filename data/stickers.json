@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb3oay30kq0",
+      "brand": "朝釉",
+      "version": "9.0系列-小塔尼",
+      "price": "10.3",
+      "setPrice": "10.3",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:47:31.563Z"
+    },
+    {
       "id": "mqb3l64lr1pv",
       "brand": "才芈",
       "version": "2.0系列-民国报社",
