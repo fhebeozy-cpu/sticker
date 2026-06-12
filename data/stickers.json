@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb2uzwoqcdt",
+      "brand": "纸次方",
+      "version": "33.0系列-菜场生活绘",
+      "price": "8.8",
+      "setPrice": "8.8",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:24:44.233Z"
+    },
+    {
       "id": "mqb2t10i-bs0",
       "brand": "天气晴",
       "version": "13.0系列-夏日晴郎",
