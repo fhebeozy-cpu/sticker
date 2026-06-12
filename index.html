@@ -519,6 +519,19 @@
     width: 18px; height: 18px; accent-color: var(--moss);
   }
 
+  /* ── MANAGE ── */
+  .mg-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--cream); border-radius: 7px;
+    padding: 7px 10px; font-size: 13px; color: var(--ink);
+  }
+  .mg-del {
+    background: none; border: none; color: #ccc; cursor: pointer;
+    font-size: 16px; line-height: 1; padding: 0 2px;
+    transition: color 0.12s;
+  }
+  .mg-del:hover { color: var(--rust); }
+
   /* ── REPORT ── */
   .report-brand-block { margin-bottom: 28px; }
   .report-brand-hd {
@@ -583,6 +596,7 @@
   <button class="tab-btn active" onclick="switchTab('stickers')">🌿 贴纸收藏</button>
   <button class="tab-btn" onclick="switchTab('shipments')">🚚 集运管理</button>
   <button class="tab-btn" onclick="switchTab('report')">📊 费用报告</button>
+  <button class="tab-btn" onclick="switchTab('manage')">⚙ 管理</button>
 </div>
 
 <!-- SYNC BAR -->
@@ -645,6 +659,33 @@
   <div id="reportContent" style="padding:0 28px 48px"></div>
 </div><!-- /tab-report -->
 
+<!-- MANAGE PAGE -->
+<div id="tab-manage" class="tab-page">
+  <div style="padding:20px 28px 0;display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px">
+
+    <!-- Platform list -->
+    <div style="background:var(--paper);border-radius:13px;padding:18px;box-shadow:0 2px 10px var(--shadow);border:1.5px solid rgba(0,0,0,0.05)">
+      <div style="font-family:'Noto Serif SC',serif;font-size:15px;font-weight:700;color:var(--moss);margin-bottom:14px">🛒 购买平台</div>
+      <div id="mgPlatformList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:7px">
+        <input class="form-input" id="mgPlatformInput" placeholder="新增平台…" style="flex:1" onkeydown="if(event.key==='Enter')addMgItem('platform')">
+        <button class="btn btn-moss btn-sm" onclick="addMgItem('platform')">＋</button>
+      </div>
+    </div>
+
+    <!-- Brand list -->
+    <div style="background:var(--paper);border-radius:13px;padding:18px;box-shadow:0 2px 10px var(--shadow);border:1.5px solid rgba(0,0,0,0.05)">
+      <div style="font-family:'Noto Serif SC',serif;font-size:15px;font-weight:700;color:var(--moss);margin-bottom:14px">🏷 品牌</div>
+      <div id="mgBrandList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:7px">
+        <input class="form-input" id="mgBrandInput" placeholder="新增品牌…" style="flex:1" onkeydown="if(event.key==='Enter')addMgItem('brand')">
+        <button class="btn btn-moss btn-sm" onclick="addMgItem('brand')">＋</button>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-manage -->
+
 <!-- ADD/EDIT MODAL -->
 <div class="overlay" id="editOverlay">
   <div class="modal">
@@ -686,16 +727,9 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">购买平台</label>
-        <input class="form-input" id="fPlatform" list="platformList" placeholder="例：Shopee、Lazada…">
-        <datalist id="platformList">
-          <option value="Shopee">
-          <option value="Lazada">
-          <option value="Taobao">
-          <option value="1688">
-          <option value="小红书">
-          <option value="Instagram">
-          <option value="实体店">
-        </datalist>
+        <select class="form-select" id="fPlatform">
+          <option value="">— 选择平台 —</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">到货状态</label>
@@ -748,7 +782,9 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">购买平台</label>
-        <input class="form-input" id="bPlatform" list="platformList" placeholder="例：Shopee、Taobao…">
+        <select class="form-select" id="bPlatform">
+          <option value="">— 选择平台 —</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">到货状态</label>
@@ -912,6 +948,7 @@ function init() {
   if (local) entries = JSON.parse(local);
   const localShip = localStorage.getItem('sticker_shipments');
   if (localShip) shipments = JSON.parse(localShip);
+  loadMgLists();
   updateSyncStatus('idle', '本地数据已加载');
   renderPagesLink();
   renderGrid();
@@ -1066,7 +1103,8 @@ function setBrandFilter(brand) {
 function openAddModal() {
   editingId = null;
   document.getElementById('modalTitle').textContent = '添加新贴纸';
-  ['fBrand','fVersion','fPrice','fLink','fNote','fQty'].forEach(id => document.getElementById(id).value = '');
+  ['fVersion','fPrice','fLink','fNote','fQty'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fBrand').value = '';
   document.getElementById('fCurrency').value = 'RM';
   document.getElementById('fStatus').value = 'wishlist';
   document.getElementById('fPlatform').value = '';
@@ -1078,7 +1116,9 @@ function openEditModal(id) {
   const e = entries.find(x => x.id === id);
   if (!e) return;
   document.getElementById('modalTitle').textContent = '编辑贴纸';
-  document.getElementById('fBrand').value = e.brand;
+  // ensure brand exists in list
+  if (e.brand && !mgBrands.includes(e.brand)) { mgBrands.push(e.brand); saveMgList('brand'); refreshSelectOptions(); }
+  document.getElementById('fBrand').value = e.brand || '';
   document.getElementById('fVersion').value = e.version;
   document.getElementById('fCurrency').value = e.currency || 'RM';
   document.getElementById('fPlatform').value = e.platform || '';
@@ -1092,7 +1132,7 @@ function openEditModal(id) {
 }
 
 function saveEntry() {
-  const brand = document.getElementById('fBrand').value.trim();
+  const brand = document.getElementById('fBrand').value;
   const version = document.getElementById('fVersion').value.trim();
   if (!brand || !version) { toast('品牌和版本不能为空', 'error'); return; }
 
@@ -1168,7 +1208,7 @@ function addBundleRow() {
   div.id = 'brow-' + n;
   div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 52px auto;gap:7px;align-items:center;background:var(--cream);border-radius:8px;padding:8px 10px;';
   div.innerHTML = `
-    <input class="form-input" id="bBrand-${n}" placeholder="品牌" style="font-size:12px;padding:6px 9px">
+    <input class="form-input" id="bBrand-${n}" placeholder="品牌" list="mgBrandDatalist" style="font-size:12px;padding:6px 9px">
     <input class="form-input" id="bVersion-${n}" placeholder="系列 / 版本" style="font-size:12px;padding:6px 9px">
     <input class="form-input" id="bQty-${n}" type="number" min="1" value="1" title="这套几张" style="font-size:12px;padding:6px 7px;text-align:center" oninput="updateBundlePreview()">
     <button onclick="removeBundleRow(${n})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:0 4px;line-height:1" title="移除">×</button>
@@ -1475,6 +1515,88 @@ const SHIP_STATUS_LABEL = { pending:'待入仓', warehouse:'已入仓', shipped:
 const SHIP_STATUS_COLOR = { pending:'#aaa', warehouse:'#8A6800', shipped:'#2A5F82', arrived:'#2E7D42' };
 
 // ── TAB SWITCH ─────────────────────────────────
+// ── MANAGE LISTS ──────────────────────────────
+let mgPlatforms = ['Shopee','Lazada','Taobao','1688','小红书','Instagram','实体店','拼多多'];
+let mgBrands = [];
+
+function loadMgLists() {
+  const sp = localStorage.getItem('mg_platforms');
+  if (sp) mgPlatforms = JSON.parse(sp);
+  const sb = localStorage.getItem('mg_brands');
+  if (sb) mgBrands = JSON.parse(sb);
+  // seed brands from existing entries if empty
+  if (!mgBrands.length) {
+    mgBrands = [...new Set(entries.map(e => e.brand).filter(Boolean))];
+    saveMgList('brand');
+  }
+}
+
+function saveMgList(type) {
+  if (type === 'platform') localStorage.setItem('mg_platforms', JSON.stringify(mgPlatforms));
+  else localStorage.setItem('mg_brands', JSON.stringify(mgBrands));
+}
+
+function renderMgLists() {
+  renderMgList('platform');
+  renderMgList('brand');
+  refreshSelectOptions();
+}
+
+function renderMgList(type) {
+  const items = type === 'platform' ? mgPlatforms : mgBrands;
+  const el = document.getElementById(type === 'platform' ? 'mgPlatformList' : 'mgBrandList');
+  el.innerHTML = items.map((item, i) => `
+    <div class="mg-item">
+      <span>${esc(item)}</span>
+      <button class="mg-del" onclick="deleteMgItem('${type}',${i})">×</button>
+    </div>`).join('');
+}
+
+function addMgItem(type) {
+  const input = document.getElementById(type === 'platform' ? 'mgPlatformInput' : 'mgBrandInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = type === 'platform' ? mgPlatforms : mgBrands;
+  if (list.includes(val)) { toast('已存在', 'error'); return; }
+  list.push(val);
+  saveMgList(type);
+  input.value = '';
+  renderMgList(type);
+  refreshSelectOptions();
+  toast('已添加 ✓', 'success');
+}
+
+function deleteMgItem(type, idx) {
+  if (type === 'platform') mgPlatforms.splice(idx, 1);
+  else mgBrands.splice(idx, 1);
+  saveMgList(type);
+  renderMgList(type);
+  refreshSelectOptions();
+}
+
+function refreshSelectOptions() {
+  // update all platform selects
+  const platHtml = '<option value="">— 选择平台 —</option>' + mgPlatforms.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  ['fPlatform','bPlatform','sh-carrier'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.tagName === 'SELECT') {
+      const cur = el.value;
+      el.innerHTML = platHtml;
+      el.value = cur;
+    }
+  });
+  // update brand select
+  const brandHtml = '<option value="">— 选择品牌 —</option>' + mgBrands.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  const bsel = document.getElementById('fBrand');
+  if (bsel) { const cur = bsel.value; bsel.innerHTML = brandHtml; bsel.value = cur; }
+  // update bundle row datalists
+  const dl = document.getElementById('mgBrandDatalist');
+  if (dl) dl.innerHTML = mgBrands.map(b => `<option value="${esc(b)}">`).join('');
+  // update filter dropdowns
+  renderBrandFilter();
+  renderPlatformFilter();
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1484,6 +1606,7 @@ function switchTab(tab) {
   });
   if (tab === 'shipments') renderShipments();
   if (tab === 'report') renderReport();
+  if (tab === 'manage') renderMgLists();
 }
 
 // ── REPORT ─────────────────────────────────────
