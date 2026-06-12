@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb339xa5y6s",
+      "brand": "雀麦",
+      "version": "8.0系列-桃源村",
+      "price": "8",
+      "setPrice": "8",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:31:10.462Z"
+    },
+    {
       "id": "mqb30onfjivk",
       "brand": "柠檬糖",
       "version": "8.0系列-落日余晖",
