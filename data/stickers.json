@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb3ca4edcvq",
+      "brand": "雀麦",
+      "version": "6.0系列-一方酒楼",
+      "price": "8",
+      "setPrice": "8",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:38:10.622Z"
+    },
+    {
       "id": "mqb339xa5y6s",
       "brand": "雀麦",
       "version": "8.0系列-桃源村",
