@@ -1,6 +1,42 @@
 {
   "entries": [
     {
+      "id": "mqa9nb8g-xcb",
+      "brand": "纸次方",
+      "version": "12.0系列-妖怪公寓",
+      "price": "7.1800",
+      "setPrice": "",
+      "qty": 1,
+      "currency": "¥",
+      "bundleTotal": "14.36",
+      "bundleCount": "2",
+      "bundleId": "mqa9nb8g",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (共2张 ¥14.36)",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T01:46:56.800Z"
+    },
+    {
+      "id": "mqa9nb8g-pvy",
+      "brand": "纸次方",
+      "version": "12.0系列-抽冬梦旅",
+      "price": "7.1800",
+      "setPrice": "",
+      "qty": 1,
+      "currency": "¥",
+      "bundleTotal": "14.36",
+      "bundleCount": "2",
+      "bundleId": "mqa9nb8g",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "捆绑购买 (共2张 ¥14.36)",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T01:46:56.800Z"
+    },
+    {
       "id": "mqa9m580-hje",
       "brand": "纸次方",
       "version": "34.0系列-春节大采购",
