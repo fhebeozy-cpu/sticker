@@ -1056,8 +1056,15 @@ function renderStats() {
   const transit = entries.filter(e => e.status === 'transit').length;
   const using = entries.filter(e => e.status === 'using').length;
   const done = entries.filter(e => e.status === 'done').length;
-  const spentRM = entries.filter(e => e.price && e.currency === 'RM' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
-  const spentCNY = entries.filter(e => e.price && e.currency === '¥' && e.status !== 'wishlist').reduce((s,e) => s + parseFloat(e.price), 0);
+  // use setPrice if available (to get actual paid amount per entry, not per-sheet divided price)
+  const spentRM = entries.filter(e => e.price && e.currency === 'RM' && e.status !== 'wishlist').reduce((s,e) => {
+    const p = e.setPrice ? parseFloat(e.setPrice) : parseFloat(e.price) * (e.qty || 1);
+    return s + p;
+  }, 0);
+  const spentCNY = entries.filter(e => e.price && e.currency === '¥' && e.status !== 'wishlist').reduce((s,e) => {
+    const p = e.setPrice ? parseFloat(e.setPrice) : parseFloat(e.price) * (e.qty || 1);
+    return s + p;
+  }, 0);
   const rate = parseFloat(localStorage.getItem('cny_to_rm') || '0.65');
   const totalRM = spentRM + spentCNY * rate;
 
@@ -1653,15 +1660,21 @@ function renderReport() {
   });
 
   // overall summary
+  // actualAmt: the real amount paid (setPrice if set, else price × qty)
+  function actualAmt(e) {
+    if (e.setPrice && parseFloat(e.setPrice) > 0) return parseFloat(e.setPrice);
+    return parseFloat(e.price || 0) * (e.qty || 1);
+  }
   let grandRM = 0;
   let grandCNY = 0;
   relevant.forEach(e => {
     const fee = feeMap[e.id] || 0;
-    const itemRM = toRM(e.price, e.currency);
+    const amt = actualAmt(e);
+    const itemRM = e.currency === '¥' ? amt * rate : amt;
     grandRM += itemRM + fee;
-    if (e.currency === '¥') grandCNY += parseFloat(e.price || 0);
+    if (e.currency === '¥') grandCNY += amt;
   });
-  const grandRMDirect = relevant.filter(e => e.currency === 'RM').reduce((s,e) => s + toRM(e.price, e.currency), 0);
+  const grandRMDirect = relevant.filter(e => e.currency === 'RM').reduce((s,e) => s + actualAmt(e), 0);
 
   let summaryHTML = `<div class="report-summary">
     <div class="stat-chip"><strong style="color:var(--bark)">RM ${grandRM.toFixed(2)}</strong>总实际花费（含运费）</div>
@@ -1678,25 +1691,27 @@ function renderReport() {
 
     const rows = items.map(e => {
       const fee = feeMap[e.id] || 0;
-      const itemRM = toRM(e.price, e.currency);
-      const totalItem = itemRM + fee;
-      brandTotalRM += totalItem;
+      const qty = e.qty || 1;
+      const amt = actualAmt(e); // actual paid (whole set)
+      const amtPerSheet = amt / qty;
+      const itemRM = e.currency === '¥' ? amt * rate : amt;
+      const itemRMPerSheet = itemRM / qty;
+      const totalItem = itemRMPerSheet + fee; // per-sheet total including fee share
+      brandTotalRM += itemRM + fee; // brand total = full set RM + fee
       const hasCNY = e.currency === '¥';
-      if (hasCNY) { brandHasCNY = true; brandCNY += parseFloat(e.price || 0); }
+      if (hasCNY) { brandHasCNY = true; brandCNY += amt; }
 
       // price display
-      const qty = e.qty || 1;
-      const setPrice = e.setPrice ? `${e.currency} ${parseFloat(e.setPrice).toFixed(2)}/${qty}张` : (e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}/张` : '—');
-      const shipStr = fee > 0 ? `+RM ${fee.toFixed(2)}运费` : '—';
+      const setPrice = e.setPrice && qty > 1
+        ? `${e.currency} ${parseFloat(e.setPrice).toFixed(2)}/${qty}张 (${e.currency} ${amtPerSheet.toFixed(2)}/张)`
+        : (e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}/张` : '—');
+      const shipStr = fee > 0 ? `+RM ${fee.toFixed(2)}/张` : '—';
 
       // total per sheet
-      let totalStr = '';
+      let totalStr = `RM ${totalItem.toFixed(2)}/张`;
       let totalSubStr = '';
       if (hasCNY) {
-        totalStr = `RM ${totalItem.toFixed(2)}`;
-        totalSubStr = `¥ ${parseFloat(e.price||0).toFixed(2)} × ${rate} + 运费`;
-      } else {
-        totalStr = `RM ${totalItem.toFixed(2)}`;
+        totalSubStr = `¥${amtPerSheet.toFixed(2)}×${rate}+运费`;
       }
 
       return `<tr>
@@ -1889,7 +1904,10 @@ function renderShipments() {
     // cost calculation
     const feeRM = toRM(s.fee, s.feeCur || 'RM');
     const feePerItem = linked.length > 0 && feeRM > 0 ? feeRM / linked.length : 0;
-    const stickerTotalRM = linked.reduce((sum, e) => sum + toRM(e.price, e.currency), 0);
+    const stickerTotalRM = linked.reduce((sum, e) => {
+      const amt = e.setPrice && parseFloat(e.setPrice) > 0 ? parseFloat(e.setPrice) : parseFloat(e.price||0)*(e.qty||1);
+      return sum + (e.currency === '¥' ? amt * toRM(1,'¥') : amt);
+    }, 0);
     const grandTotalRM = stickerTotalRM + feeRM;
 
     const feeLabel = s.fee ? `${s.feeCur || 'RM'} ${parseFloat(s.fee).toFixed(2)}` : '—';
@@ -1913,9 +1931,13 @@ function renderShipments() {
       ${linked.length > 0 ? `
       <div class="shipment-items">
         ${linked.map(e => {
-          const itemRM = toRM(e.price, e.currency);
-          const totalItem = itemRM + feePerItem;
-          const priceStr = e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}` : '—';
+          const qty = e.qty || 1;
+          const amt = e.setPrice && parseFloat(e.setPrice) > 0 ? parseFloat(e.setPrice) : parseFloat(e.price||0)*qty;
+          const itemRM = e.currency === '¥' ? amt * toRM(1,'¥') : amt;
+          const totalItem = itemRM/qty + feePerItem;
+          const priceStr = e.setPrice && qty > 1
+            ? `${e.currency} ${parseFloat(e.setPrice).toFixed(2)}/${qty}张`
+            : (e.price ? `${e.currency} ${parseFloat(e.price).toFixed(2)}/张` : '—');
           const totalStr = totalItem > 0 ? `RM ${totalItem.toFixed(2)}` : '—';
           return `
           <div class="shipment-item-row">
