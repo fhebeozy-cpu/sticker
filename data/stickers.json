@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb3icx4fxpq",
+      "brand": "infeelme",
+      "version": "我的小屋32.0系列-E人饭桌",
+      "price": "5.5",
+      "setPrice": "5.5",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:42:54.185Z"
+    },
+    {
       "id": "mqb3geix-tsy",
       "brand": "infeelme",
       "version": "我的小屋15.0系列-P人",
