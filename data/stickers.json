@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "id": "mqb30onfjivk",
+      "brand": "柠檬糖",
+      "version": "8.0系列-落日余晖",
+      "price": "5",
+      "setPrice": "5",
+      "qty": 1,
+      "currency": "¥",
+      "platform": "小红书",
+      "status": "ordered",
+      "link": "",
+      "note": "",
+      "date": "2026/6/12",
+      "updatedAt": "2026-06-12T15:29:09.580Z"
+    },
+    {
       "id": "mqb2uzwoqcdt",
       "brand": "纸次方",
       "version": "33.0系列-菜场生活绘",
